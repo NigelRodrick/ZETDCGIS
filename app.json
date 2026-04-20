@@ -6,23 +6,33 @@
     "orientation": "portrait",
     "icon": "./icon.png",
     "userInterfaceStyle": "light",
+    "platforms": ["ios", "android"],
+    "scheme": "meter-collect-mobile",
     "splash": {
       "image": "./icon.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
-    "assetBundlePatterns": [
-      "**/*"
-    ],
+    "assetBundlePatterns": ["**/*"],
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "zw.co.zetdc.metercollect"
     },
     "android": {
-      "package": "com.example.metercollectmobile",
+      "package": "zw.co.zetdc.metercollect",
       "adaptiveIcon": {
         "foregroundImage": "./icon.png",
         "backgroundColor": "#ffffff"
       }
-    }
+    },
+    "plugins": [
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "Allow $(PRODUCT_NAME) to use your location to record asset coordinates in the field.",
+          "isAndroidForegroundServiceEnabled": false
+        }
+      ]
+    ]
   }
 }
