@@ -1,12 +1,24 @@
-# iOS only: EAS cloud build → IPA (internal distribution; configure Apple credentials in EAS).
-# Trigger: Actions → "Build iOS IPA", or push a tag like v1.0.0-ios
-# Requires repo secret EXPO_TOKEN. Apple signing is managed in Expo (eas credentials).
-# First time: run `npx eas-cli@latest init` locally and commit the added projectId in app.json.
+# iOS: EAS cloud build (IPA) → job summary, Actions artifact, GitHub Release on v*-ios tags.
+# Secrets: EXPO_TOKEN. Configure Apple credentials in EAS. Releases use GITHUB_TOKEN.
 
 name: Build iOS IPA
 
 on:
   workflow_dispatch:
+    inputs:
+      clear_cache:
+        description: Clear EAS build cache before this build
+        type: boolean
+        default: false
+      build_message:
+        description: Short message stored with the build on Expo (optional)
+        type: string
+        required: false
+        default: ""
+      create_github_release:
+        description: When running on a version tag, upload IPA to a GitHub Release
+        type: boolean
+        default: true
   push:
     tags:
       - "v*-ios"
@@ -15,10 +27,21 @@ concurrency:
   group: eas-build-ios-${{ github.ref }}
   cancel-in-progress: false
 
+permissions:
+  contents: read
+
 jobs:
   build:
-    name: EAS Build (iOS)
+    name: EAS Build (iOS IPA)
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      actions: write
+    env:
+      EAS_JSON: eas-result.json
+    outputs:
+      artifact_url: ${{ steps.summary.outputs.artifact_url }}
+      has_artifact: ${{ steps.download_ipa.outputs.upload }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -39,5 +62,95 @@ jobs:
           packager: npm
           token: ${{ secrets.EXPO_TOKEN }}
 
+      - name: Apply workflow_dispatch options
+        if: github.event_name == 'workflow_dispatch'
+        run: |
+          echo "CLEAR_CACHE=${{ inputs.clear_cache }}" >> "$GITHUB_ENV"
+          echo "BUILD_MESSAGE<<__EAS_MSG__" >> "$GITHUB_ENV"
+          echo "${{ inputs.build_message }}" >> "$GITHUB_ENV"
+          echo "__EAS_MSG__" >> "$GITHUB_ENV"
+
       - name: Build iOS on EAS
-        run: eas build --platform ios --profile ios-ipa --non-interactive --wait
+        id: eas
+        run: |
+          set -eo pipefail
+          ARGS=(build --platform ios --profile ios-ipa --non-interactive --wait --json)
+          if [ "${CLEAR_CACHE:-false}" = "true" ]; then
+            ARGS+=(--clear-cache)
+          fi
+          if [ -n "${BUILD_MESSAGE:-}" ]; then
+            ARGS+=(-m "$BUILD_MESSAGE")
+          fi
+          eas "${ARGS[@]}" | tee "$EAS_JSON"
+
+      - name: Job summary
+        id: summary
+        if: success()
+        run: |
+          BUILD_ID=$(jq -r '.[0].id // empty' "$EAS_JSON")
+          STATUS=$(jq -r '.[0].status // empty' "$EAS_JSON")
+          ARTIFACT_URL=$(jq -r '.[0].artifacts.applicationArchiveUrl // empty' "$EAS_JSON")
+          echo "artifact_url=$ARTIFACT_URL" >> "$GITHUB_OUTPUT"
+          {
+            echo "## iOS EAS build"
+            echo ""
+            echo "| Field | Value |"
+            echo "| --- | --- |"
+            echo "| Build ID | \`$BUILD_ID\` |"
+            echo "| Status | \`$STATUS\` |"
+            echo "| Artifact URL | $ARTIFACT_URL |"
+            echo ""
+            echo "Logs and history: [Expo dashboard](https://expo.dev)."
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Download IPA for GitHub artifact
+        id: download_ipa
+        if: success()
+        run: |
+          echo "upload=false" >> "$GITHUB_OUTPUT"
+          URL=$(jq -r '.[0].artifacts.applicationArchiveUrl // empty' "$EAS_JSON")
+          if [ -z "$URL" ]; then
+            echo "No applicationArchiveUrl in build result; skipping download."
+            exit 0
+          fi
+          OUT="MeterCollect-${{ github.ref_name }}-${{ github.run_number }}.ipa"
+          curl -fL --retry 3 --retry-delay 5 -o "$OUT" "$URL"
+          echo "upload=true" >> "$GITHUB_OUTPUT"
+          echo "path=$OUT" >> "$GITHUB_OUTPUT"
+
+      - name: Upload IPA artifact
+        if: success() && steps.download_ipa.outputs.upload == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-ipa-${{ github.run_number }}
+          path: ${{ steps.download_ipa.outputs.path }}
+          if-no-files-found: error
+
+  release:
+    name: GitHub Release (iOS)
+    needs: build
+    if: |
+      always()
+      && needs.build.result == 'success'
+      && needs.build.outputs.has_artifact == 'true'
+      && startsWith(github.ref, 'refs/tags/v')
+      && contains(github.ref, '-ios')
+      && (github.event_name == 'push' || inputs.create_github_release)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download IPA from workflow artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: ios-ipa-${{ github.run_number }}
+          path: dist
+
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: ${{ github.ref_name }} (iOS)
+          files: dist/*
+          generate_release_notes: true
+          fail_on_unmatched_files: true
