@@ -1,0 +1,67 @@
+{
+  "formName": "METERS",
+  "epicollect": {
+    "projectSlug": "southern-region-meters",
+    "formSlug": "meters",
+    "source": "GET https://five.epicollect.net/api/export/project/southern-region-meters",
+    "groupQuestion": "METER",
+    "note": "Field order and types mirror the live Epicollect5 form; re-export the project if the form changes."
+  },
+  "fields": [
+    {
+      "key": "meterno",
+      "epicollectQuestion": "METERNO",
+      "type": "textarea",
+      "label": "METERNO",
+      "required": true
+    },
+    {
+      "key": "phases",
+      "epicollectQuestion": "PHASES",
+      "type": "dropdown",
+      "label": "PHASES",
+      "required": true,
+      "options": ["RED", "YELLOW", "BLUE", "THREE PHASE"]
+    },
+    {
+      "key": "mcbsize",
+      "epicollectQuestion": "MCBSIZE",
+      "type": "dropdown",
+      "label": "MCBSIZE",
+      "required": false,
+      "options": [
+        "5A",
+        "7.5A",
+        "10A",
+        "15A",
+        "30A",
+        "60A",
+        "63A",
+        "100A",
+        "150A",
+        "175A",
+        "225A",
+        "350A",
+        "400A",
+        "500A",
+        "630A",
+        "800A"
+      ]
+    },
+    {
+      "key": "comments",
+      "epicollectQuestion": "COMMENTS",
+      "type": "text",
+      "label": "COMMENTS",
+      "required": false
+    },
+    {
+      "key": "location",
+      "epicollectQuestion": "LOCATION",
+      "type": "location",
+      "label": "LOCATION",
+      "required": false,
+      "note": "In MobileGIS, optional GPS capture on save maps to Epicollect’s location question."
+    }
+  ]
+}
