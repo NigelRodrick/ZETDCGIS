@@ -7,7 +7,9 @@
     "typecheck": "tsc --noEmit",
     "start": "expo start",
     "android": "expo start --android",
-    "ios": "expo start --ios"
+    "ios": "expo start --ios",
+    "eas:android": "eas build --platform android --profile android-apk",
+    "eas:ios": "eas build --platform ios --profile ios-ipa"
   },
   "dependencies": {
     "@react-native-async-storage/async-storage": "^1.23.1",
@@ -19,6 +21,7 @@
   },
   "devDependencies": {
     "@types/react": "~18.2.79",
+    "eas-cli": "^16.0.0",
     "typescript": "~5.3.3"
   },
   "overrides": {

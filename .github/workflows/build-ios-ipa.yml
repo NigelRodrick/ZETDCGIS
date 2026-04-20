@@ -1,0 +1,43 @@
+# iOS only: EAS cloud build → IPA (internal distribution; configure Apple credentials in EAS).
+# Trigger: Actions → "Build iOS IPA", or push a tag like v1.0.0-ios
+# Requires repo secret EXPO_TOKEN. Apple signing is managed in Expo (eas credentials).
+# First time: run `npx eas-cli@latest init` locally and commit the added projectId in app.json.
+
+name: Build iOS IPA
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - "v*-ios"
+
+concurrency:
+  group: eas-build-ios-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: EAS Build (iOS)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Setup EAS
+        uses: expo/expo-github-action@v8
+        with:
+          eas-version: latest
+          packager: npm
+          token: ${{ secrets.EXPO_TOKEN }}
+
+      - name: Build iOS on EAS
+        run: eas build --platform ios --profile ios-ipa --non-interactive --wait
