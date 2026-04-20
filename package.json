@@ -2,8 +2,9 @@
   "name": "meter-collect-mobile",
   "version": "1.0.0",
   "private": true,
-  "main": "index.js",
+  "main": "node_modules/expo/AppEntry.js",
   "scripts": {
+    "typecheck": "tsc --noEmit",
     "start": "expo start",
     "android": "expo start --android",
     "ios": "expo start --ios",
