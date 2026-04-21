@@ -56,6 +56,9 @@ jobs:
       - name: Prepare Android project
         run: npx expo prebuild --platform android --non-interactive
 
+      - name: Make Gradle wrapper executable
+        run: chmod +x android/gradlew
+
       - name: Clean Gradle outputs
         if: github.event_name == 'workflow_dispatch' && inputs.clear_cache
         run: |
