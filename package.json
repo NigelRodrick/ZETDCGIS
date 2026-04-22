@@ -5,10 +5,12 @@
   "main": "expo-router/entry",
   "scripts": {
     "start": "expo start",
-    "android": "expo start --android",
-    "ios": "expo start --ios",
+    "android": "expo run:android",
+    "ios": "expo run:ios",
     "web": "expo start --web",
     "prebuild": "expo prebuild",
+    "apk:debug": "set GRADLE_USER_HOME=C:\\gcache&& cd android && gradlew.bat assembleDebug --no-daemon --no-build-cache --no-parallel --no-watch-fs",
+    "apk:path": "cmd /c if exist android\\app\\build\\outputs\\apk\\debug\\app-debug.apk (echo android\\app\\build\\outputs\\apk\\debug\\app-debug.apk) else (echo APK not found)",
     "build:ios": "eas build --platform ios",
     "build:android": "eas build --platform android"
   },

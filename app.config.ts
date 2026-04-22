@@ -5,7 +5,7 @@ const IOS_BUNDLE_ID = "com.mobilegis.app";
 const ANDROID_PACKAGE = "com.mobilegis.app";
 
 const config: ExpoConfig = {
-  name: "MobileGIS",
+  name: "GIS",
   slug: "mobilegis",
   version: "1.0.0",
   orientation: "portrait",

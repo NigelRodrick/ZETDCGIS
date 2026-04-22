@@ -11,3 +11,15 @@ npm-debug.*
 *.key
 *.mobileprovision
 *.orig.*
+
+# Android native (Expo prebuild)
+android/local.properties
+android/.gradle
+android/.gradle-user-home
+android/app/build
+android/build
+android/.cxx
+*.apk
+*.aab
+local.properties
+**/debug.keystore
