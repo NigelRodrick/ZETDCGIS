@@ -1,13 +1,13 @@
-/** Epicollect5 southern-region-meters → form “METERS” — keep in sync with `assets/forms/meter-form.json`. */
+/** Meter form option sets used by the MobileGIS manual capture flow. */
 
-export const EPICOLLECT_PHASES = [
+export const METER_PHASES = [
   "RED",
   "YELLOW",
   "BLUE",
   "THREE PHASE",
 ] as const;
 
-export const EPICOLLECT_MCBSIZES = [
+export const METER_MCBSIZES = [
   "5A",
   "7.5A",
   "10A",

@@ -1,23 +1,21 @@
 {
   "formName": "METERS",
-  "epicollect": {
-    "projectSlug": "southern-region-meters",
-    "formSlug": "meters",
-    "source": "GET https://five.epicollect.net/api/export/project/southern-region-meters",
-    "groupQuestion": "METER",
-    "note": "Field order and types mirror the live Epicollect5 form; re-export the project if the form changes."
+  "metadata": {
+    "owner": "MobileGIS",
+    "source": "Local manual field capture form",
+    "note": "Field order and types define the in-app meter capture experience."
   },
   "fields": [
     {
       "key": "meterno",
-      "epicollectQuestion": "METERNO",
+      "sourceField": "METERNO",
       "type": "textarea",
       "label": "METERNO",
       "required": true
     },
     {
       "key": "phases",
-      "epicollectQuestion": "PHASES",
+      "sourceField": "PHASES",
       "type": "dropdown",
       "label": "PHASES",
       "required": true,
@@ -25,7 +23,7 @@
     },
     {
       "key": "mcbsize",
-      "epicollectQuestion": "MCBSIZE",
+      "sourceField": "MCBSIZE",
       "type": "dropdown",
       "label": "MCBSIZE",
       "required": false,
@@ -50,18 +48,18 @@
     },
     {
       "key": "comments",
-      "epicollectQuestion": "COMMENTS",
+      "sourceField": "COMMENTS",
       "type": "text",
       "label": "COMMENTS",
       "required": false
     },
     {
       "key": "location",
-      "epicollectQuestion": "LOCATION",
+      "sourceField": "LOCATION",
       "type": "location",
       "label": "LOCATION",
       "required": false,
-      "note": "In MobileGIS, optional GPS capture on save maps to Epicollect’s location question."
+      "note": "In MobileGIS, GPS capture on save maps to this location field."
     }
   ]
 }

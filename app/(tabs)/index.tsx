@@ -1,87 +1,170 @@
-import { Link } from "expo-router";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { useRouter } from "expo-router";
+import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 
 export default function HomeScreen() {
-  return (
-    <View style={styles.container}>
-      <Text style={styles.title}>MobileGIS</Text>
-      <Text style={styles.tagline}>Field data collection for iOS &amp; Android</Text>
-      <Text style={styles.lead}>
-        Structured forms, GPS coordinates, offline SQLite storage, and CSV export
-        — one app for iOS and Android. No map SDKs bundled.
-      </Text>
+  const router = useRouter();
+  const formSections = [
+    {
+      title: "Meter",
+      body: "Capture meter details and related field observations.",
+      collectHref: { pathname: "/collect", params: { form: "meter" } } as const,
+      viewHref: { pathname: "/collect", params: { form: "meter", focus: "list" } } as const,
+    },
+    {
+      title: "Pole",
+      body: "Record pole condition, location, and maintenance notes.",
+      collectHref: { pathname: "/collect", params: { form: "pole" } } as const,
+      viewHref: { pathname: "/collect", params: { form: "pole", focus: "list" } } as const,
+    },
+    {
+      title: "Switchgear",
+      body: "Document switchgear status, checks, and remarks.",
+      collectHref: { pathname: "/collect", params: { form: "switchgear" } } as const,
+      viewHref: { pathname: "/collect", params: { form: "switchgear", focus: "list" } } as const,
+    },
+    {
+      title: "Transformer",
+      body: "Collect transformer attributes, condition, and comments.",
+      collectHref: { pathname: "/collect", params: { form: "transformer" } } as const,
+      viewHref: {
+        pathname: "/collect",
+        params: { form: "transformer", focus: "list" },
+      } as const,
+    },
+  ];
 
-      <View style={styles.links}>
-        <Link href="/map" asChild>
-          <Pressable style={styles.card}>
-            <Text style={styles.cardTitle}>Location</Text>
-            <Text style={styles.cardBody}>
-              GPS readouts and saved points; open any coordinate in Maps or
-              OpenStreetMap
-            </Text>
-          </Pressable>
-        </Link>
-        <Link href="/collect" asChild>
-          <Pressable style={styles.card}>
-            <Text style={styles.cardTitle}>Collect</Text>
-            <Text style={styles.cardBody}>
-              Field forms, attach coordinates, export CSV
-            </Text>
-          </Pressable>
-        </Link>
-        <Link href="/settings" asChild>
-          <Pressable style={styles.card}>
-            <Text style={styles.cardTitle}>Settings</Text>
-            <Text style={styles.cardBody}>App info and bundle identifiers</Text>
-          </Pressable>
-        </Link>
+  return (
+    <ScrollView
+      style={styles.container}
+      contentContainerStyle={styles.contentContainer}
+      showsVerticalScrollIndicator={false}
+    >
+      <Text style={styles.title}>Forms</Text>
+      <View style={styles.sections}>
+        {formSections.map((section) => {
+          const isTransformer = section.title === "Transformer";
+          return (
+          <View key={section.title} style={styles.card}>
+            <Pressable
+              style={({ pressed }) => [styles.cardMain, pressed && styles.pressed]}
+              onPress={() => router.push(section.collectHref)}
+            >
+              <Text style={styles.cardTitle}>{section.title}</Text>
+              <Text style={styles.cardBody}>{section.body}</Text>
+            </Pressable>
+            <View style={styles.actions}>
+              <Pressable
+                style={({ pressed }) => [styles.primaryBtn, pressed && styles.pressed]}
+                onPress={() => router.push(section.collectHref)}
+              >
+                <Text style={styles.primaryBtnText}>Collect</Text>
+              </Pressable>
+              <Pressable
+                style={({ pressed }) => [
+                  styles.secondaryBtn,
+                  isTransformer && styles.secondaryBtnBlack,
+                  pressed && styles.pressed,
+                ]}
+                onPress={() => router.push(section.viewHref)}
+              >
+                <Text style={styles.secondaryBtnText}>Open</Text>
+              </Pressable>
+            </View>
+          </View>
+        )})}
       </View>
-    </View>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 20,
     backgroundColor: "#f8faf9",
   },
+  contentContainer: {
+    padding: 20,
+    paddingBottom: 28,
+  },
   title: {
-    fontSize: 28,
-    fontWeight: "800",
-    color: "#0c6b4d",
-    marginBottom: 4,
-  },
-  tagline: {
-    fontSize: 15,
-    color: "#6b7280",
-    marginBottom: 12,
-  },
-  lead: {
-    fontSize: 16,
-    lineHeight: 24,
-    color: "#374151",
+    fontSize: 24,
+    fontWeight: "700",
+    color: "#111827",
     marginBottom: 20,
   },
-  links: {
+  sections: {
     gap: 12,
   },
   card: {
-    backgroundColor: "#fff",
+    width: "100%",
+    backgroundColor: "#0047d6",
     borderRadius: 12,
+    padding: 0,
+    borderWidth: 2,
+    borderColor: "#0030a8",
+    shadowColor: "#001a5c",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.35,
+    shadowRadius: 4,
+    elevation: 5,
+    overflow: "hidden",
+  },
+  cardMain: {
     padding: 16,
-    borderWidth: 1,
-    borderColor: "#e5e7eb",
+    paddingBottom: 8,
   },
   cardTitle: {
     fontSize: 17,
     fontWeight: "600",
-    color: "#0c6b4d",
+    color: "#ffffff",
     marginBottom: 4,
   },
   cardBody: {
     fontSize: 14,
-    color: "#6b7280",
+    color: "#ffffff",
     lineHeight: 20,
+    opacity: 0.95,
+  },
+  actions: {
+    flexDirection: "row",
+    gap: 10,
+    paddingHorizontal: 16,
+    paddingBottom: 16,
+    paddingTop: 4,
+  },
+  primaryBtn: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    borderRadius: 10,
+    paddingVertical: 10,
+    backgroundColor: "#001a4d",
+  },
+  primaryBtnText: {
+    color: "#ffffff",
+    fontWeight: "600",
+    fontSize: 14,
+  },
+  secondaryBtn: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    borderRadius: 10,
+    paddingVertical: 10,
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.55)",
+    backgroundColor: "rgba(255,255,255,0.15)",
+  },
+  secondaryBtnText: {
+    color: "#ffffff",
+    fontWeight: "600",
+    fontSize: 14,
+  },
+  secondaryBtnBlack: {
+    backgroundColor: "#111111",
+    borderColor: "#111111",
+  },
+  pressed: {
+    opacity: 0.9,
   },
 });

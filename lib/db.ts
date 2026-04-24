@@ -15,14 +15,6 @@ export type ObservationListItem = {
   longitude: number | null;
 };
 
-export type ObservationMapPin = {
-  id: number;
-  title: string;
-  latitude: number;
-  longitude: number;
-  namespace: "observation" | "meter";
-};
-
 export type NewObservation = {
   title: string;
   notes: string;
@@ -33,7 +25,7 @@ export type NewObservation = {
   location?: { latitude: number; longitude: number } | null;
 };
 
-/** Matches Epicollect5 project southern-region-meters, form “METERS” (export). */
+/** Local meter reading record stored in SQLite. */
 export type MeterReadingItem = {
   id: number;
   meterno: string;
@@ -79,8 +71,8 @@ function migrateObservationsTable(d: SQLiteDatabase) {
   }
 }
 
-/** Schema aligned with Epicollect questions METERNO, PHASES, MCBSIZE, COMMENTS, LOCATION. */
-function ensureMeterReadingsEpicollect(d: SQLiteDatabase) {
+/** Ensure meter_readings table exists and migrate legacy schema if needed. */
+function ensureMeterReadingsSchema(d: SQLiteDatabase) {
   const tables = d.getAllSync<{ name: string }>(
     "SELECT name FROM sqlite_master WHERE type='table' AND name='meter_readings'"
   );
@@ -109,7 +101,7 @@ function ensureMeterReadingsEpicollect(d: SQLiteDatabase) {
   }
   if (!names.has("meter_number")) {
     d.execSync("DROP TABLE meter_readings;");
-    ensureMeterReadingsEpicollect(d);
+    ensureMeterReadingsSchema(d);
     return;
   }
   d.execSync(`
@@ -155,7 +147,7 @@ function ensureMeterReadingsEpicollect(d: SQLiteDatabase) {
       latitude,
       longitude,
       created_at,
-      COALESCE(source_project, 'southern-region-meters')
+      COALESCE(source_project, 'mobilegis')
     FROM meter_readings;
   `);
   d.execSync("DROP TABLE meter_readings;");
@@ -174,7 +166,7 @@ function database(): SQLiteDatabase {
       );
     `);
     migrateObservationsTable(db);
-    ensureMeterReadingsEpicollect(db);
+    ensureMeterReadingsSchema(db);
   }
   return db;
 }
@@ -259,7 +251,7 @@ export async function insertMeterReading(data: NewMeterReading): Promise<void> {
       data.comments,
       lat,
       lon,
-      "southern-region-meters",
+      "mobilegis",
     ]
   );
 }
@@ -293,67 +285,11 @@ export async function listMeterReadings(
     createdAt: r.created_at,
     latitude: r.latitude ?? null,
     longitude: r.longitude ?? null,
-    sourceProject: r.source_project ?? "southern-region-meters",
+    sourceProject: r.source_project ?? "mobilegis",
   }));
 }
 
 export async function deleteMeterReading(id: number): Promise<void> {
   const d = database();
   d.runSync("DELETE FROM meter_readings WHERE id = ?", [id]);
-}
-
-export async function listMeterPins(
-  limit = 500
-): Promise<ObservationMapPin[]> {
-  const d = database();
-  const cap = clampLimit(limit);
-  const rows = d.getAllSync<{
-    id: number;
-    meterno: string;
-    latitude: number | null;
-    longitude: number | null;
-  }>(
-    `SELECT id, meterno, latitude, longitude FROM meter_readings
-     WHERE latitude IS NOT NULL AND longitude IS NOT NULL
-     ORDER BY id DESC LIMIT ${cap}`
-  );
-  return rows
-    .filter(
-      (r): r is typeof r & { latitude: number; longitude: number } =>
-        r.latitude != null && r.longitude != null
-    )
-    .map((r) => ({
-      id: r.id,
-      title: r.meterno.trim() || `Meter #${r.id}`,
-      latitude: r.latitude,
-      longitude: r.longitude,
-      namespace: "meter" as const,
-    }));
-}
-
-export async function listObservationPins(
-  limit = 500
-): Promise<ObservationMapPin[]> {
-  const d = database();
-  const cap = clampLimit(limit);
-  const rows = d.getAllSync<{
-    id: number;
-    title: string;
-    latitude: number | null;
-    longitude: number | null;
-  }>(
-    `SELECT id, title, latitude, longitude FROM observations WHERE latitude IS NOT NULL AND longitude IS NOT NULL ORDER BY id DESC LIMIT ${cap}`
-  );
-  return rows
-    .filter(
-      (r): r is typeof r & { latitude: number; longitude: number } =>
-        r.latitude != null && r.longitude != null
-    )
-    .map((r) => ({
-      id: r.id,
-      title: r.title,
-      latitude: r.latitude,
-      longitude: r.longitude,
-      namespace: "observation" as const,
-    }));
 }

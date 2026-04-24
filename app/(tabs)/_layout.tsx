@@ -31,24 +31,16 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="map"
+        name="settings"
         options={{
-          title: "Location",
-          tabBarIcon: tabIcon("location-outline"),
+          title: "Settings",
+          tabBarIcon: tabIcon("settings-outline"),
         }}
       />
       <Tabs.Screen
         name="collect"
         options={{
-          title: "Collect",
-          tabBarIcon: tabIcon("create-outline"),
-        }}
-      />
-      <Tabs.Screen
-        name="settings"
-        options={{
-          title: "Settings",
-          tabBarIcon: tabIcon("settings-outline"),
+          tabBarButton: () => null,
         }}
       />
     </Tabs>

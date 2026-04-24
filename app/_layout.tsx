@@ -1,5 +1,6 @@
 import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
+import * as Location from "expo-location";
 import { useEffect, useState } from "react";
 import { Image, StyleSheet, Text, View } from "react-native";
 
@@ -9,8 +10,18 @@ export default function RootLayout() {
   useEffect(() => {
     const timer = setTimeout(() => {
       setShowStartupSplash(false);
-    }, 2200);
+    }, 900);
     return () => clearTimeout(timer);
+  }, []);
+
+  useEffect(() => {
+    void (async () => {
+      const fg = await Location.requestForegroundPermissionsAsync();
+      if (fg.status !== "granted") {
+        return;
+      }
+      await Location.requestBackgroundPermissionsAsync();
+    })();
   }, []);
 
   if (showStartupSplash) {
@@ -48,15 +59,16 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
   },
   splashImage: {
-    width: 180,
-    height: 180,
-    marginBottom: 20,
+    width: 112,
+    height: 112,
+    marginBottom: 12,
   },
   credit: {
-    fontSize: 14,
-    lineHeight: 20,
-    color: "#374151",
+    fontSize: 12,
+    lineHeight: 16,
+    color: "#6b7280",
     textAlign: "center",
-    fontWeight: "600",
+    fontWeight: "500",
+    maxWidth: 280,
   },
 });

@@ -1,34 +1,34 @@
 import Constants from "expo-constants";
-import * as Linking from "expo-linking";
+import { useState } from "react";
 import {
-  Alert,
-  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
   Text,
+  TextInput,
   View,
 } from "react-native";
 
-import {
-  EPICOLLECT_FORMBUILDER_SOUTHERN_METERS,
-  EPICOLLECT_PROJECT_SOUTHERN_METERS,
-} from "../../lib/epicollectLinks";
+const DEVELOPER_NAME = "Nigel Onai Rodrick Sibanda";
 
 export default function SettingsScreen() {
-  const extra = Constants.expoConfig?.extra as
-    | { eas?: { projectId?: string } }
-    | undefined;
-  const iosId = Constants.expoConfig?.ios?.bundleIdentifier ?? "—";
-  const androidPkg = Constants.expoConfig?.android?.package ?? "—";
+  const [nameInput, setNameInput] = useState("");
+  const [passwordInput, setPasswordInput] = useState("");
+  const [loggedInAs, setLoggedInAs] = useState<string | null>(null);
+  const appVersion = Constants.expoConfig?.version ?? "—";
 
-  const openUrl = async (url: string) => {
-    const ok = await Linking.canOpenURL(url);
-    if (!ok) {
-      Alert.alert("Cannot open link", url);
+  const login = () => {
+    const next = nameInput.trim();
+    if (!next || !passwordInput) {
       return;
     }
-    await Linking.openURL(url);
+    setLoggedInAs(next);
+    setNameInput("");
+    setPasswordInput("");
+  };
+
+  const logout = () => {
+    setLoggedInAs(null);
   };
 
   return (
@@ -38,55 +38,53 @@ export default function SettingsScreen() {
       keyboardShouldPersistTaps="handled"
     >
       <Text style={styles.title}>Settings</Text>
+
       <View style={styles.card}>
-        <Row label="App name" value={Constants.expoConfig?.name ?? "—"} />
-        <Row label="Slug" value={Constants.expoConfig?.slug ?? "—"} />
-        <Row label="Version" value={Constants.expoConfig?.version ?? "—"} />
-        <Row label="Runtime" value={Platform.OS} />
-        <Row label="iOS bundle ID" value={iosId} mono />
-        <Row label="Android package" value={androidPkg} mono />
-        <Row
-          label="EAS project"
-          value={extra?.eas?.projectId ?? "Run eas init to link"}
-          mono
-        />
+        <Text style={styles.cardTitle}>Profile</Text>
+        <Text style={styles.statusLabel}>
+          Status: {loggedInAs ? `Logged in as ${loggedInAs}` : "Logged out"}
+        </Text>
+        {!loggedInAs ? (
+          <>
+            <Text style={styles.inputLabel}>Username</Text>
+            <TextInput
+              style={styles.input}
+              value={nameInput}
+              onChangeText={setNameInput}
+              placeholder="EC Number"
+              placeholderTextColor="#9ca3af"
+              autoCapitalize="none"
+            />
+            <Text style={styles.inputLabel}>Password</Text>
+            <TextInput
+              style={styles.input}
+              value={passwordInput}
+              onChangeText={setPasswordInput}
+              secureTextEntry
+              autoCapitalize="none"
+            />
+            <Pressable
+              style={({ pressed }) => [styles.primaryBtn, pressed && styles.pressed]}
+              onPress={login}
+            >
+              <Text style={styles.primaryBtnText}>Log in</Text>
+            </Pressable>
+          </>
+        ) : (
+          <Pressable
+            style={({ pressed }) => [styles.secondaryBtn, pressed && styles.pressed]}
+            onPress={logout}
+          >
+            <Text style={styles.secondaryBtnText}>Log out</Text>
+          </Pressable>
+        )}
       </View>
 
-      <Text style={styles.section}>Epicollect5 (southern-region-meters)</Text>
-      <Text style={styles.epiLead}>
-        As project admin, sign in on the web (Google, Apple, or email), then use
-        the buttons below. MobileGIS does not replace Epicollect login — it opens
-        your project in the browser.
-      </Text>
-      <Pressable
-        style={({ pressed }) => [styles.linkCard, pressed && styles.pressed]}
-        onPress={() => void openUrl(EPICOLLECT_PROJECT_SOUTHERN_METERS)}
-      >
-        <Text style={styles.linkTitle}>Open project</Text>
-        <Text style={styles.linkUrl} numberOfLines={2}>
-          {EPICOLLECT_PROJECT_SOUTHERN_METERS}
-        </Text>
-      </Pressable>
-      <Pressable
-        style={({ pressed }) => [styles.linkCard, pressed && styles.pressed]}
-        onPress={() => void openUrl(EPICOLLECT_FORMBUILDER_SOUTHERN_METERS)}
-      >
-        <Text style={styles.linkTitle}>Edit form (Formbuilder)</Text>
-        <Text style={styles.linkUrl} numberOfLines={2}>
-          {EPICOLLECT_FORMBUILDER_SOUTHERN_METERS}
-        </Text>
-      </Pressable>
-
-      <Text style={styles.hint}>
-        Field records in MobileGIS stay on this device in SQLite until you export
-        or delete them. The Collect “Meters” mode mirrors the Epicollect5 “METERS”
-        form; after you change the live form, update{" "}
-        <Text style={styles.monoInline}>assets/forms/meter-form.json</Text> and{" "}
-        <Text style={styles.monoInline}>lib/meterFormSchema.ts</Text> (or re-sync
-        from the project export API). Build iOS/Android with EAS:{" "}
-        <Text style={styles.monoInline}>npx eas init</Text> then{" "}
-        <Text style={styles.monoInline}>eas build --platform all</Text>.
-      </Text>
+      <View style={[styles.card, styles.metaCard]}>
+        <Text style={styles.cardTitle}>Application Info</Text>
+        <Row label="Version" value={appVersion} />
+        <Row label="Developer" value={DEVELOPER_NAME} />
+      </View>
     </ScrollView>
   );
 }
@@ -94,16 +92,14 @@ export default function SettingsScreen() {
 function Row({
   label,
   value,
-  mono,
 }: {
   label: string;
   value: string;
-  mono?: boolean;
 }) {
   return (
     <View style={styles.row}>
       <Text style={styles.rowLabel}>{label}</Text>
-      <Text style={[styles.rowValue, mono && styles.mono]} selectable>
+      <Text style={styles.rowValue} selectable>
         {value}
       </Text>
     </View>
@@ -130,52 +126,59 @@ const styles = StyleSheet.create({
     borderColor: "#e5e7eb",
     gap: 12,
   },
-  row: { gap: 4 },
-  rowLabel: { fontSize: 12, color: "#9ca3af", textTransform: "uppercase" },
-  rowValue: { fontSize: 16, color: "#111827" },
-  mono: { fontFamily: "monospace", fontSize: 13 },
-  section: {
-    marginTop: 24,
-    marginBottom: 8,
-    fontSize: 15,
+  cardTitle: {
+    fontSize: 16,
     fontWeight: "700",
     color: "#0c6b4d",
   },
-  epiLead: {
+  statusLabel: {
     fontSize: 14,
-    lineHeight: 20,
+    color: "#374151",
+  },
+  inputLabel: {
+    fontSize: 12,
     color: "#6b7280",
-    marginBottom: 12,
-  },
-  linkCard: {
-    backgroundColor: "#fff",
-    borderRadius: 12,
-    padding: 14,
-    borderWidth: 1,
-    borderColor: "#0c6b4d",
-    marginBottom: 10,
-  },
-  linkTitle: {
-    fontSize: 16,
+    textTransform: "uppercase",
     fontWeight: "600",
-    color: "#0c6b4d",
-    marginBottom: 6,
+    marginBottom: -4,
   },
-  linkUrl: {
-    fontSize: 12,
-    color: "#6b7280",
-    fontFamily: "monospace",
+  input: {
+    backgroundColor: "#fff",
+    borderWidth: 1,
+    borderColor: "#d1d5db",
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    fontSize: 15,
+    color: "#111827",
   },
+  primaryBtn: {
+    backgroundColor: "#0c6b4d",
+    borderRadius: 10,
+    paddingVertical: 12,
+    alignItems: "center",
+  },
+  primaryBtnText: {
+    color: "#fff",
+    fontWeight: "600",
+    fontSize: 15,
+  },
+  secondaryBtn: {
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: "#b91c1c",
+    paddingVertical: 12,
+    alignItems: "center",
+    backgroundColor: "#fff",
+  },
+  secondaryBtnText: {
+    color: "#b91c1c",
+    fontWeight: "600",
+    fontSize: 15,
+  },
+  row: { gap: 4 },
+  rowLabel: { fontSize: 12, color: "#9ca3af", textTransform: "uppercase" },
+  rowValue: { fontSize: 16, color: "#111827" },
+  metaCard: { marginTop: 16 },
   pressed: { opacity: 0.92 },
-  hint: {
-    marginTop: 16,
-    fontSize: 13,
-    lineHeight: 20,
-    color: "#6b7280",
-  },
-  monoInline: {
-    fontFamily: "monospace",
-    fontSize: 12,
-    color: "#0c6b4d",
-  },
 });

@@ -24,6 +24,10 @@ const config: ExpoConfig = {
     infoPlist: {
       NSLocationWhenInUseUsageDescription:
         "MobileGIS uses your location to record coordinates for field data collection.",
+      NSLocationAlwaysAndWhenInUseUsageDescription:
+        "MobileGIS can access your location in the background for continuous field tracking.",
+      NSLocationAlwaysUsageDescription:
+        "MobileGIS can access your location in the background for continuous field tracking.",
       NSCameraUsageDescription:
         "MobileGIS can use the camera when you attach photos to field records.",
       NSPhotoLibraryUsageDescription:
@@ -32,6 +36,7 @@ const config: ExpoConfig = {
         NSAllowsArbitraryLoads: true,
         NSAllowsLocalNetworking: true,
       },
+      UIBackgroundModes: ["location"],
     },
   },
   android: {
@@ -44,11 +49,11 @@ const config: ExpoConfig = {
     permissions: [
       "ACCESS_FINE_LOCATION",
       "ACCESS_COARSE_LOCATION",
+      "ACCESS_BACKGROUND_LOCATION",
       "CAMERA",
       "READ_EXTERNAL_STORAGE",
       "WRITE_EXTERNAL_STORAGE",
     ],
-    usesCleartextTraffic: true,
   },
   web: {
     bundler: "metro",

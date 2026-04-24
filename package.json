@@ -10,7 +10,12 @@
     "web": "expo start --web",
     "prebuild": "expo prebuild",
     "apk:debug": "set GRADLE_USER_HOME=C:\\gcache&& cd android && gradlew.bat assembleDebug --no-daemon --no-build-cache --no-parallel --no-watch-fs",
+    "apk:release": "cmd /c \"set NODE_ENV=production&& set GRADLE_USER_HOME=C:\\gcache&& cd android && gradlew.bat assembleRelease --no-daemon --no-build-cache --no-parallel --no-watch-fs\"",
+    "apk:release:arm64": "cmd /c \"set NODE_ENV=production&& set GRADLE_USER_HOME=C:\\gcache&& cd android && gradlew.bat assembleRelease -PreactNativeArchitectures=arm64-v8a --no-daemon --no-build-cache --no-parallel --no-watch-fs\"",
     "apk:path": "cmd /c if exist android\\app\\build\\outputs\\apk\\debug\\app-debug.apk (echo android\\app\\build\\outputs\\apk\\debug\\app-debug.apk) else (echo APK not found)",
+    "apk:release:path": "cmd /c if exist android\\app\\build\\outputs\\apk\\release\\app-release.apk (echo android\\app\\build\\outputs\\apk\\release\\app-release.apk) else (echo Release APK not found — run npm run apk:release)",
+    "apk:release:arm64:path": "cmd /c if exist android\\app\\build\\outputs\\apk\\release\\app-arm64-v8a-release.apk (echo android\\app\\build\\outputs\\apk\\release\\app-arm64-v8a-release.apk) else (echo ARM64 release APK not found — run npm run apk:release:arm64)",
+    "android:reverse": "adb reverse tcp:8081 tcp:8081",
     "build:ios": "eas build --platform ios",
     "build:android": "eas build --platform android"
   },

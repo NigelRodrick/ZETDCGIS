@@ -40,6 +40,10 @@ react {
     cliFile = new File(["node", "--print", "require.resolve('@expo/cli', { paths: [require.resolve('expo/package.json')] })"].execute(null, rootDir).text.trim())
     bundleCommand = "export:embed"
 
+    // Empty list = bundle JS for debug too, so APKs sideloaded without Metro still run.
+    // (Default ["debug"] skips bundling and requires a running packager.)
+    debuggableVariants = []
+
     /* Folders */
     //   The root of your project, i.e. where "package.json" lives. Default is '..'
     // root = file("../")
@@ -116,6 +120,14 @@ android {
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1
         versionName "1.0.0"
+    }
+    splits {
+        abi {
+            reset()
+            enable true
+            universalApk false
+            include (*((findProperty('reactNativeArchitectures') ?: "armeabi-v7a,arm64-v8a").split(",")))
+        }
     }
     signingConfigs {
         debug {
